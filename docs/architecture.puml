@@ -1,0 +1,25 @@
+@startuml Investment Portfolio Report Generation
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title "High Level Architecture Multiplayer Tetris Game Online"
+LAYOUT_TOP_DOWN()
+
+' System Context
+Person(user, "Player", "User who plays the game")
+System_Ext(pp, "Player Platform", "player platform to connect to the game server, could be mobile app, web browser, or dekstop")
+System_Boundary(game, "Game Architecture") {
+  System(game_frontend, "Game Frontend", "Provides game interface for players, could be mobile app, web browser, or dekstop")
+  System(game_backend, "Game Backend", "Handles game logic and data storage")
+}
+
+' Relationships - System Context
+Rel_D(user, pp, "User connects to the game server through a platform")
+Rel_D(pp, game_frontend, "Player platform connects to the game frontend")
+Rel_D(game_frontend, game_backend, "Game frontend connects to the game backend")
+Rel_U(game_backend, game_frontend, "Game backend sends game state to game frontend")
+Rel_U(game_frontend, user, "Game frontend sends game state to user")
+
+SHOW_LEGEND()
+
+@enduml

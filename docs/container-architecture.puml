@@ -1,0 +1,81 @@
+@startuml Multiplayer Tetris Game Online - Container Architecture (Ebiten)
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title "Multiplayer Tetris Game Online - Container Architecture (Ebiten)"
+LAYOUT_TOP_DOWN()
+
+' External Actors
+Person(player1, "Player 1", "User who plays the game")
+Person(player2, "Player 2", "User who plays the game")
+
+' External Systems/Platforms
+System_Ext(desktop_platform, "Desktop Platform", "Windows, macOS, Linux executable")
+System_Ext(web_platform, "Web Platform", "Browser with WebAssembly support")
+System_Ext(mobile_platform, "Mobile Platform", "Android/iOS devices")
+
+System_Boundary(tetris_system, "Tetris Game System") {
+    ' Client Containers (Ebiten-based)
+    Container(desktop_client, "Desktop Game Client", "Go/Ebiten", "Native desktop game client with full Tetris logic and rendering")
+    Container(web_client, "Web Game Client", "Go/Ebiten/WASM", "WebAssembly-compiled game client for browsers")
+    Container(mobile_client, "Mobile Game Client", "Go/Ebiten/Mobile", "Mobile-optimized game client for Android/iOS")
+    
+    ' Network Layer
+    Container(network_client, "Network Client", "Go/WebSocket", "Handles multiplayer communication within game clients")
+    
+    
+    ' Backend Containers  
+    Container(api_gateway, "API Gateway", "Go/Gin", "Routes requests, authentication, rate limiting")
+    Container(websocket_server, "WebSocket Server", "Go/Gorilla WebSocket", "Real-time bidirectional communication for game state")
+    Container(game_server, "Game Server", "Go", "Core game logic, match making, game state management")
+    Container(room_manager, "Room Manager", "Go", "Manages game rooms, player sessions, room lifecycle")
+    
+    ' Data Storage
+    ContainerDb(redis_cache, "Redis Cache", "Redis", "Stores active game sessions, player states, room data")
+    ContainerDb(postgres_db, "PostgreSQL Database", "PostgreSQL", "Stores user profiles, game history, leaderboards")
+    
+    ' Monitoring & Infrastructure
+    Container(monitoring, "Monitoring Service", "Prometheus/Grafana", "System metrics, performance monitoring")
+}
+
+' Relationships - Player to Platform
+Rel(player1, desktop_platform, "Plays via desktop", "OS")
+Rel(player1, web_platform, "Plays via browser", "HTTPS")
+Rel(player1, mobile_platform, "Plays via mobile", "Mobile App")
+Rel(player2, desktop_platform, "Plays via desktop", "OS")
+Rel(player2, web_platform, "Plays via browser", "HTTPS")
+Rel(player2, mobile_platform, "Plays via mobile", "Mobile App")
+
+' Platform to Client
+Rel(desktop_platform, desktop_client, "Runs native client", "OS Process")
+Rel(web_platform, web_client, "Loads WASM client", "WebAssembly")
+Rel(mobile_platform, mobile_client, "Runs mobile client", "Native App")
+
+' Client Network Communication
+Rel(desktop_client, network_client, "Uses for multiplayer", "Internal API")
+Rel(web_client, network_client, "Uses for multiplayer", "Internal API")
+Rel(mobile_client, network_client, "Uses for multiplayer", "Internal API")
+
+' Network to Backend Communication
+Rel(network_client, api_gateway, "Authentication, user data", "HTTPS/REST API")
+Rel(network_client, websocket_server, "Real-time game events", "WebSocket")
+
+' Backend Internal Communication
+Rel(api_gateway, game_server, "Game requests", "HTTP/gRPC")
+Rel(websocket_server, room_manager, "Room events", "Internal API")
+Rel(room_manager, game_server, "Game state updates", "Internal API")
+Rel(game_server, redis_cache, "Stores/retrieves game state", "Redis Protocol")
+Rel(api_gateway, postgres_db, "User data, game history", "SQL")
+
+' Real-time Communication Flow
+Rel(game_server, websocket_server, "Broadcasts game state", "Internal API")
+Rel(websocket_server, network_client, "Game state updates", "WebSocket")
+
+' Monitoring
+Rel(game_server, monitoring, "Sends metrics", "HTTP")
+Rel(websocket_server, monitoring, "Connection metrics", "HTTP")
+Rel(redis_cache, monitoring, "Cache metrics", "Redis Protocol")
+
+SHOW_LEGEND()
+
+@enduml

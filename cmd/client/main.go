@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	"tetris-online/tetris/blocks"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
@@ -22,9 +24,15 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	ebiten.SetWindowSize(640, 480)
-	ebiten.SetWindowTitle("Hello, World!")
-	if err := ebiten.RunGame(&Game{}); err != nil {
+	// ebiten.SetWindowSize(640, 480)
+	// ebiten.SetWindowTitle("Hello, World!")
+	// if err := ebiten.RunGame(&Game{}); err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	ebiten.SetWindowSize(blocks.ScreenWidth*2, blocks.ScreenHeight*2)
+	ebiten.SetWindowTitle("Blocks (Ebitengine Demo)")
+	if err := ebiten.RunGame(&blocks.Game{}); err != nil {
 		log.Fatal(err)
 	}
 }
